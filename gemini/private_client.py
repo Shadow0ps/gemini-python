@@ -310,7 +310,105 @@ class PrivateClient(PublicClient):
         else:
             payload = {}
         return self.api_query('/v1/deposit/{}/newAddress'.format(currency), payload)
+  
+    # Approved Address List Management API
+    @typeassert(network=str,address=str,label=str)
+    def add_withdrawal_address(self, network,address,label=None):
+        """
+        This will create a new cryptocurrency approved withdrawal address with an optional label.
 
+        Args:
+            network(str): Can be bitcoin, ethereum, bitcoincash, litecoin, zcash, filecoin, dogecoin, tezos, solana, or polkadot
+            address(str)
+            label(str)
+
+        Results: If successful a string will be returned with
+             "message": "Approved address addition is now waiting a 7-day approval hold before activation."
+    
+        """
+        if label:
+            payload = {
+              "address": address,
+              "label": label,
+            }
+        else:
+            payload = {
+              "address": address,
+              "label": "Address_Added_By_API",
+            }
+        return self.api_query('/v1/approvedAddresses/{}/request'.format(network), payload)
+    
+    @typeassert(network=str,address=str)
+    def remove_withdrawal_address(self, network,address):
+        """
+        This will remove a cryptocurrency approved withdrawal address.
+
+        Args:
+            network(str): Can be bitcoin, ethereum, bitcoincash, litecoin, zcash, filecoin, dogecoin, tezos, solana, or polkadot
+            address(str)
+
+        Results: If successful a string will be returned with
+              "message": "0x0000000000000000000000000000000000000000 removed from group pending-time approved addresses."
+    
+        """
+        payload = {
+                "address": address
+            }
+        return self.api_query('/v1/approvedAddresses/{}/remove'.format(network), payload)
+    
+    @typeassert(network=str,address=str)
+    def list_withdrawal_addresses(self, network,address):
+        """
+        This will list approved withdrawal addresses for the specified network.
+
+        Args:
+            network(str): Can be bitcoin, ethereum, bitcoincash, litecoin, zcash, filecoin, dogecoin, tezos, solana, or polkadot
+            address(str): Any valid network address (Must match the network that you are querying.)
+
+        Results: Sample Response
+                                  {
+                      "approvedAddresses": [
+                        {
+                          "network": "ethereum",
+                          "scope": "account",
+                          "label": "api_added_ETH_address",
+                          "status": "pending-time",
+                          "createdAt": "1602692572349",
+                          "address": "0x0000000000000000000000000000000000000000"
+                        },
+                        {
+                          "network": "ethereum",
+                          "scope": "group",
+                          "label": "api_added_ETH_address",
+                          "status": "pending-time",
+                          "createdAt": "1602692542296",
+                          "address": "0x0000000000000000000000000000000000000000"
+                        },
+                        {
+                          "network": "ethereum",
+                          "scope": "group",
+                          "label": "hardware_wallet",
+                          "status": "active",
+                          "createdAt": "1602087433270",
+                          "address": "0xA63123350Acc8F5ee1b1fBd1A6717135e82dBd28"
+                        },
+                        {
+                          "network": "ethereum",
+                          "scope": "account",
+                          "label": "hardware_wallet",
+                          "status": "active",
+                          "createdAt": "1602086832986",
+                          "address": "0xA63123350Acc8F5ee1b1fBd1A6717135e82dBd28"
+                        }
+                      ]
+                    }
+    
+        """
+        payload = {
+          "address": address
+        }
+        return self.api_query('/v1/approvedAddresses/account/{}'.format(network), payload)
+    
     @typeassert(currency=str, address=str, amount=str)
     def withdraw_to_address(self, currency, address, amount):
         """
@@ -363,3 +461,4 @@ class PrivateClient(PublicClient):
         Revive the heartbeat if 'heartbeat' is selected for the API.
         """
         return self.api_query('/v1/heartbeat')
+  
